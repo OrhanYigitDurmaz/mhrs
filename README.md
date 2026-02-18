@@ -9,7 +9,7 @@ Patients book doctor appointments.
 - RabbitMQ/Kafka
 - Valkey
 - Elasticsearch
-- JWT
+- JWT Tokens
 - Jenkins
 
 ## Core
