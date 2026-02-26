@@ -370,6 +370,136 @@ Email must be valid format if provided. Phone length 7-20 chars if provided.
 
 `timezone` must be a valid IANA timezone string.
 
+## Appointment Module v0.1 (Draft)
+
+This section defines a minimal contract so the appointment module can be implemented now.
+
+### Data Types
+
+AppointmentStatus: `PENDING`, `CONFIRMED`, `CANCELLED`, `RESCHEDULED`, `COMPLETED`, `NO_SHOW`
+
+Date format: `YYYY-MM-DD`. Time format: `HH:mm` (24h). Timestamp: ISO-8601.
+
+### Appointment
+
+Response shape:
+
+```json
+{
+  "appointmentId": "a1",
+  "patientId": "p1",
+  "doctorId": "d1",
+  "clinicId": "c1",
+  "departmentId": "dep1",
+  "specialtyId": "sp1",
+  "date": "2026-03-10",
+  "startTime": "09:00",
+  "endTime": "09:20",
+  "status": "CONFIRMED",
+  "reason": "Routine checkup",
+  "notes": "Bring previous reports",
+  "createdAt": "2026-03-01T10:00:00Z",
+  "updatedAt": "2026-03-02T11:00:00Z"
+}
+```
+
+### Endpoints
+
+POST /appointments
+
+Request:
+
+```json
+{
+  "patientId": "p1",
+  "doctorId": "d1",
+  "clinicId": "c1",
+  "departmentId": "dep1",
+  "specialtyId": "sp1",
+  "date": "2026-03-10",
+  "startTime": "09:00",
+  "endTime": "09:20",
+  "reason": "Routine checkup",
+  "notes": "Bring previous reports"
+}
+```
+
+Response: Appointment. Status code: 201.
+
+GET /appointments
+
+Query params (all optional): `patientId`, `doctorId`, `clinicId`, `departmentId`, `specialtyId`, `status`, `dateFrom`, `dateTo`
+
+Response: list of Appointment.
+
+GET /appointments/{id}
+
+Response: Appointment.
+
+PATCH /appointments/{id}/confirm
+
+Response: Appointment.
+
+PATCH /appointments/{id}/cancel
+
+Request (optional):
+
+```json
+{
+  "reason": "Patient requested cancellation"
+}
+```
+
+Response: Appointment.
+
+PATCH /appointments/{id}/reschedule
+
+Request:
+
+```json
+{
+  "date": "2026-03-12",
+  "startTime": "10:00",
+  "endTime": "10:20",
+  "reason": "Scheduling conflict"
+}
+```
+
+Response: Appointment.
+
+PATCH /appointments/{id}/complete
+
+Response: Appointment.
+
+PATCH /appointments/{id}/no-show
+
+Response: Appointment.
+
+POST /appointments/{id}/admin-override
+
+Request:
+
+```json
+{
+  "status": "CONFIRMED",
+  "notes": "Admin override applied"
+}
+```
+
+Response: Appointment.
+
+### Validation Rules
+
+`patientId`, `doctorId`, `clinicId`, `departmentId`, `specialtyId` required on create.
+
+`date`, `startTime`, `endTime` required on create.
+
+`startTime` must be before `endTime`.
+
+Reschedule requires `date`, `startTime`, `endTime`.
+
+`reason` length 1-500 if provided. `notes` length 0-1000 if provided.
+
 ## Patient Module v0.1 (Draft)
 
 This section defines a minimal contract so the patient module can be implemented now.
