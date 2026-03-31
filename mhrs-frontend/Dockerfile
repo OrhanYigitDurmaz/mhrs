@@ -11,6 +11,9 @@ RUN bun install --frozen-lockfile
 # Copy source code
 COPY . .
 
+# Run SvelteKit sync to generate necessary files
+RUN bun run prepare
+
 # Build the application
 RUN bun run build
 
