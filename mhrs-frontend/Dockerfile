@@ -1,42 +1,20 @@
-# Build stage
-FROM oven/bun:alpine AS builder
+FROM oven/bun:alpine
 WORKDIR /app
 
 # Copy package files
 COPY package.json bun.lock ./
 
-# Install dependencies
+# Install ALL dependencies (dev server needs devDependencies like Vite and Svelte)
 RUN bun install --frozen-lockfile
 
-# Copy source code
+# Copy all source code
 COPY . .
 
 # Run SvelteKit sync to generate necessary files
 RUN bun run prepare
 
-# Build the application
-RUN bun run build
+# Expose the default Vite development port
+EXPOSE 5173
 
-# Production stage
-FROM oven/bun:alpine AS runner
-WORKDIR /app
-
-
-
-# Copy package files
-COPY package.json bun.lock ./
-
-# Install production dependencies only
-RUN bun install --frozen-lockfile --production
-
-# Copy built files from builder
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/.svelte-kit/output ./.svelte-kit/output
-
-
-
-# Expose port (SvelteKit default)
-EXPOSE 3000
-
-# Run the production server with Bun
-CMD ["bun", "run", "start"]
+# Run the dev server and bind to all network interfaces so Docker can route traffic to it
+CMD ["bun", "run", "dev", "--host", "0.0.0.0"]
