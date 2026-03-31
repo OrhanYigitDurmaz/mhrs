@@ -1,0 +1,10 @@
+fastapi[standard]==0.135.2
+sqlalchemy==2.0.48
+alembic==1.18.4
+pymysql==1.1.2
+cryptography==46.0.6
+pydantic==2.12.5
+pydantic-settings==2.13.1
+python-jose[cryptography]==3.5.0
+bcrypt==5.0.0
+python-multipart==0.0.22
