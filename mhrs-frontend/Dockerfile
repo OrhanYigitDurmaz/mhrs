@@ -1,9 +1,6 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM oven/bun:alpine AS builder
 WORKDIR /app
-
-# Install bun
-RUN npm install -g bun
 
 # Copy package files
 COPY package.json bun.lock ./
@@ -18,28 +15,31 @@ COPY . .
 RUN bun run build
 
 # Production stage
-FROM nginx:alpine AS runner
+FROM oven/bun:alpine AS runner
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup --system --gid 1001 bun && \
+    adduser --system --uid 1001 bun
+
+# Copy package files
+COPY package.json bun.lock ./
+
+# Install production dependencies only
+RUN bun install --frozen-lockfile --production
 
 # Copy built files from builder
-COPY --from=builder /app/.svelte-kit/output /usr/share/nginx/html
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/.svelte-kit/output ./.svelte-kit/output
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma 2>/dev/null || true
 
-# Copy nginx config
-COPY <<EOF /etc/nginx/conf.d/default.conf
-server {
-    listen 80;
-    server_name _;
-    root /usr/share/nginx/html;
-    index index.html;
+# Set ownership
+RUN chown -R bun:bun /app
 
-    location / {
-        try_files \$uri \$uri.html \$uri/index.html /index.html;
-    }
+USER bun
 
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-}
-EOF
-
+# Expose port (SvelteKit default)
 EXPOSE 3000
 
-CMD ["nginx", "-g", "daemon off;"]
+# Run the production server with Bun
+CMD ["bun", "run", "start"]
